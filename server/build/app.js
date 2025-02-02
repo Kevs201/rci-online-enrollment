@@ -23,7 +23,7 @@ exports.app.use(express_1.default.json({ limit: "50mb" }));
 exports.app.use((0, cookie_parser_1.default)());
 // cors => corss origin resource sharing
 exports.app.use((0, cors_1.default)({
-    origin: ['https://enrollment-rci-system.vercel.app/'],
+    origin: ['https://rci-online-enrollment-client.vercel.app/'],
     credentials: true,
 }));
 // api request limit
