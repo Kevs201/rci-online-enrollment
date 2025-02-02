@@ -21,7 +21,7 @@ app.use(cookieParser());
 // cors => corss origin resource sharing
 app.use(
   cors({
-    origin:['http://localhost:3000'],
+    origin:['https://rci-online-enrollment-client.vercel.app'],
     credentials: true,
   })
 );

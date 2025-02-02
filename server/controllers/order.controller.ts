@@ -68,22 +68,24 @@ export const createOrder = CatchAsyncError(
 
       // Handle Profile Image upload (if provided)
       let profileImageData = null;
-      if (profileImage) {
-        const myCloudProfile = await cloudinary.v2.uploader.upload(
-          profileImage,
-          {
-            folder: "orders", // Save the image in the "orders" folder in Cloudinary
-          }
-        );
+      if (typeof profileImage === 'string') {
+        const myCloudProfile = await cloudinary.v2.uploader.upload(profileImage, {
+          folder: 'orders', // Save the image in the "orders" folder in Cloudinary
+        });
+        
         profileImageData = {
           public_id: myCloudProfile.public_id,
           url: myCloudProfile.secure_url,
         };
+      } else {
+        // Handle case where profileImage is not a string
+        console.error("Profile image must be a string URL or file path.");
       }
+      
 
       // Handle ID Picture upload (if provided)
       let idPictureData = null;
-      if (idPicture) {
+      if (typeof idPicture === 'string' ) {
         const myCloudIdPicture = await cloudinary.v2.uploader.upload(
           idPicture,
           {
@@ -94,6 +96,8 @@ export const createOrder = CatchAsyncError(
           public_id: myCloudIdPicture.public_id,
           url: myCloudIdPicture.secure_url,
         };
+      }else{
+        console.error("idPicture image must be a string URL or file path")
       }
 
       // Get the current year (last two digits)
