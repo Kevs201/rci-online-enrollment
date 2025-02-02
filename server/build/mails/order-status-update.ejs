@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Status Update</title>
+    <style>
+        /* Base Styles */
+        body {
+            margin: 0;
+            padding: 0;
+            min-width: 100%;
+            font-family: 'Arial', sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            background-color: #FAFAFA;
+            color: #000;
+        }
+        a {
+            color: #000;
+            text-decoration: none;
+        }
+        h1, h2 {
+            font-size: 24px;
+            font-weight: 700;
+            text-align: center;
+            margin: 0;
+            padding-bottom: 15px;
+        }
+        p {
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        table td {
+            vertical-align: top;
+        }
+        /* Layout */
+        .email-wrapper {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .email-header {
+            background-color: #cb1193;
+            padding: 24px;
+            color: #fff;
+        }
+        .email-body {
+            padding: 14px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .email-footer {
+            background-color: #f6f6f6;
+            padding: 24px;
+        }
+        .order-details {
+            background-color: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .order-details strong {
+            color: #333;
+        }
+        .status {
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .cancellation-reason {
+            color: #f44336;
+            font-style: italic;
+        }
+        .footer {
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        .footer a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        .button {
+            display: inline-block;
+            background-color: #0070f3;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            text-align: center;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-wrapper">
+        <div class="email-header">
+            <h1>Status Update</h1>
+        </div>
+        <div class="email-body">
+            <!-- Include order information -->
+            <div class="order-details">
+                <p><strong>Course:</strong> <%=order.name%></p>
+                <% if (order.orderDataID) { %>
+                    <p><strong>Student ID:</strong> <%= order.orderDataID %></p>
+                <% } else { %>
+                    <p><strong>Order Data ID:</strong> Not available</p>
+                <% } %>
+                <p><strong>Status:</strong> <span class="status"><%= order.status %></span></p>
+            </div>
+
+            <!-- Display orderDataID if it exists -->
+          
+
+            <!-- Display cancellation reason if the order is canceled -->
+            <% if (order.status === "canceled") { %>
+                <p class="cancellation-reason"><strong>Cancellation Reason:</strong> <%= cancellationReason || 'No reason provided' %></p>
+            <% } %>
+
+            <p>Thank you for your purchase! If you have any questions, feel free to <a href="mailto:support@example.com">contact us</a>.</p>
+            
+            <!-- <a href="<%= order.status === 'completed' ? 'https://your-website.com/track' : '#' %>" class="button">Track Your Order</a> -->
+        </div>
+        <div class="email-footer">
+            <p>&copy; 2025 Your Company Name. All rights reserved. <br> For more information, visit our <a href="http://www.yourwebsite.com">website</a>.</p>
+        </div>
+    </div>
+</body>
+</html>
