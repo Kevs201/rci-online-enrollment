@@ -138,6 +138,7 @@ exports.logoutUser = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, next) =>
     }
 }));
 // update access token
+// update access token
 exports.updateAccessToken = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const refreshTokenFromCookie = req.cookies.refresh_token; // Renamed for clarity

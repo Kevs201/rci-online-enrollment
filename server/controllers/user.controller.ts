@@ -196,6 +196,7 @@ export const logoutUser = CatchAsyncError(
 );
 
 // update access token
+// update access token
 export const updateAccessToken = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -246,6 +247,7 @@ export const updateAccessToken = CatchAsyncError(
     }
   }
 );
+
 
 
 // get user info
