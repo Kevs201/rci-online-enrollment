@@ -7,12 +7,13 @@ const redis_1 = require("./redis");
 const accessTokenExpire = parseInt(process.env.ACCESS_TOKEN_EXPIRE || "60", 10); // 60 minutes = 1 hour
 const refreshTokenExpire = parseInt(process.env.REFRESH_TOKEN_EXPIRE || "1200", 10); // 1200 minutes = 20 hours
 // Cookie options for the access token
+const isProduction = process.env.NODE_ENV === 'production';
 exports.accessTokenOptions = {
     expires: new Date(Date.now() + accessTokenExpire * 60 * 60 * 1000),
     maxAge: accessTokenExpire * 60 * 60 * 1000,
     httpOnly: true,
     sameSite: "none",
-    secure: true
+    secure: isProduction,
 };
 // Cookie options for the refresh token
 exports.refreshTokenOptions = {
@@ -20,7 +21,7 @@ exports.refreshTokenOptions = {
     maxAge: refreshTokenExpire * 24 * 60 * 60 * 1000,
     httpOnly: true,
     sameSite: "none",
-    secure: true
+    secure: isProduction,
 };
 // Send token and set session in Redis
 const sendToken = (user, statusCode, res) => {
