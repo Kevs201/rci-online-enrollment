@@ -184,13 +184,25 @@ exports.updateAccessToken = (0, catchAsyncErrors_1.CatchAsyncError)(async (req, 
 // get user info
 exports.getUserInfo = (0, catchAsyncErrors_1.CatchAsyncError)(async (req, res, next) => {
     try {
+        // Ensure the user is authenticated
         const userId = req.user?._id;
-        (0, user_service_1.getUserById)(userId, res);
-    }
-    catch (error) {
+        
+        if (!userId) {
+            // If userId is missing, respond with an error
+            return next(new ErrorHandler_1.default("User not authenticated", 400));
+        }
+
+        // If userId exists, try to fetch user data
+        await user_service_1.getUserById(userId, res);
+    } catch (error) {
+        // Log error for better debugging
+        console.error("Error in getUserInfo handler:", error);
+        
+        // Send error message to the client
         return next(new ErrorHandler_1.default(error.message, 400));
     }
 });
+
 // social auth
 exports.socialAuth = (0, catchAsyncErrors_1.CatchAsyncError)(async (req, res, next) => {
     try {
