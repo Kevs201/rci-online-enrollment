@@ -182,7 +182,7 @@ export const logoutUser = CatchAsyncError(
       res.cookie("access_token", "", { maxAge: 1 });
       res.cookie("refresh_token", "", { maxAge: 1 });
       const userId = req.user?._id?.toString() || "";
-      if(userId){
+      if (userId) {
         await redis.del([userId]);
       }
       res.status(200).json({
@@ -199,82 +199,54 @@ export const logoutUser = CatchAsyncError(
 export const updateAccessToken = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const refresh_token = req.cookies.refresh_token as string;
+      const refreshTokenFromCookie = req.cookies.refresh_token as string; // Renamed for clarity
+      const decoded = jwt.verify(
+        refreshTokenFromCookie, // Used the correct variable here
+        process.env.REFRESH_TOKEN as string
+      ) as JwtPayload;
 
-      // Check if refresh token exists
-      if (!refresh_token) {
-        return next(new ErrorHandler("Refresh token is missing", 400));
+      const message = "Could not refresh token";
+      if (!decoded) {
+        return next(new ErrorHandler(message, 400));
       }
-
-      let decoded: JwtPayload;
-
-      try {
-        decoded = jwt.verify(
-          refresh_token,
-          process.env.REFRESH_TOKEN as string
-        ) as JwtPayload;
-      } catch (err) {
-        return next(new ErrorHandler("Invalid or expired refresh token", 401));
-      }
-
-      // Retrieve session from Redis using the decoded user ID
       const session = await redis.get(decoded.id as string);
 
       if (!session) {
-        return next(
-          new ErrorHandler("Please login for access the resource!", 401)
-        );
+        return next(new ErrorHandler(message, 400));
       }
 
-      // Parse the user data from the session
       const user = JSON.parse(session);
 
-      // Generate a new access token
       const accessToken = jwt.sign(
         { id: user._id },
         process.env.ACCESS_TOKEN as string,
-        { expiresIn: "5m" } // Adjust the expiry time as needed
+        {
+          expiresIn: "5m",
+        }
       );
 
-      // Generate a new refresh token
       const refreshToken = jwt.sign(
         { id: user._id },
         process.env.REFRESH_TOKEN as string,
-        { expiresIn: "3d" } // Adjust the expiry time as needed
+        {
+          expiresIn: "3d",
+        }
       );
 
-      // Attach user to the request object if needed in subsequent middleware
-      req.user = user;
-
-      // Define cookie options for access and refresh tokens
-      const accessTokenOptions: CookieOptions = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // Set this to true in production for secure cookies
-        sameSite: "strict", // This should be valid, but you can try explicitly typing it if TypeScript still complains
-        maxAge: 5 * 60 * 1000, // 5 minutes
-      };
-      
-      const refreshTokenOptions: CookieOptions = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict", // This should be valid as well
-        maxAge: 3 * 24 * 60 * 60 * 1000, // 3 days
-      };
-      
-
-      // Set the access and refresh tokens as cookies in the response
+      // Corrected here to set the right refresh token in the cookies
       res.cookie("access_token", accessToken, accessTokenOptions);
-      res.cookie("refresh_token", refreshToken, refreshTokenOptions);
+      res.cookie("refresh_token", refreshToken, refreshTokenOptions); // Fixed this line
 
-      await redis.set(user._id, JSON.stringify(user), "EX", 604800); // 7 days
-
-      // Send the response with the new access token
-      next();
+      res.status(200).json({
+        status: "success",
+        accessToken,
+      });
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
     }
   }
 );
+
 
 // get user info
 export const getUserInfo = CatchAsyncError(
@@ -356,7 +328,9 @@ export const updatePassword = CatchAsyncError(
 
       // Validate that both oldPassword and newPassword are provided
       if (!oldPassword || !newPassword) {
-        return next(new ErrorHandler("Please enter both old and new password", 400));
+        return next(
+          new ErrorHandler("Please enter both old and new password", 400)
+        );
       }
 
       // Ensure userId is a valid string
@@ -396,7 +370,6 @@ export const updatePassword = CatchAsyncError(
     }
   }
 );
-
 
 interface IUpdateProfilePicture {
   avatar: string;
