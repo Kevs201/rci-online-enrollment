@@ -199,49 +199,46 @@ export const logoutUser = CatchAsyncError(
 export const updateAccessToken = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // Get the refresh token from cookies
-      const refreshToken = req.cookies.refresh_token as string;
-      
-      if (!refreshToken) {
-        return next(new ErrorHandler("No refresh token provided", 400));
+      const updateAccessToken = req.cookies.refresh_token as string;
+      const decoded = jwt.verify(
+        refresh_token,
+        process.env.REFRESH_TOKEN as string
+      ) as JwtPayload;
+
+      const message = "Could not refresh token";
+      if (!decoded) {
+        return next(new ErrorHandler(message, 400));
       }
+      const session = await redis.get(decoded.id as string);
 
-      // Verify the refresh token
-      const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN as string) as JwtPayload;
-
-      // Ensure the decoded token contains an ID
-      if (!decoded || !decoded.id) {
-        return next(new ErrorHandler("Invalid refresh token", 400));
-      }
-
-      // Fetch the user session from Redis
-      const session = await redis.get(decoded.id);
-      
       if (!session) {
-        return next(new ErrorHandler("Session not found, please log in again", 400));
+        return next(new ErrorHandler(message, 400));
       }
 
-      // Parse user session
       const user = JSON.parse(session);
 
-      // Generate new access token
-      const newAccessToken = jwt.sign({ id: user._id }, process.env.ACCESS_TOKEN as string, {
-        expiresIn: "5m",
-      });
+      const accessToken = jwt.sign(
+        { id: user._id },
+        process.env.ACCESS_TOKEN as string,
+        {
+          expiresIn: "5m",
+        }
+      );
 
-      // Generate new refresh token
-      const newRefreshToken = jwt.sign({ id: user._id }, process.env.REFRESH_TOKEN as string, {
-        expiresIn: "3d",
-      });
+      const refreshToken = jwt.sign(
+        { id: user._id },
+        process.env.REFRESH_TOKEN as string,
+        {
+          expiresIn: "3d",
+        }
+      );
 
-      // Set new access and refresh tokens in cookies
-      res.cookie("access_token", newAccessToken, accessTokenOptions);
-      res.cookie("refresh_token", newRefreshToken, refreshTokenOptions);
+      res.cookie("access_token", accessToken, accessTokenOptions);
+      res.cookie("refresh_token", accessToken, refreshTokenOptions);
 
-      // Send the new access token in response
       res.status(200).json({
         status: "success",
-        accessToken: newAccessToken,
+        accessToken,
       });
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));

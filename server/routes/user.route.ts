@@ -31,14 +31,15 @@ userRouter.get("/me", isAutheticated, getUserInfo);
 
 userRouter.post("/social-auth", socialAuth);
 
-userRouter.put("/update-user-info", isAutheticated, updateUserInfo);
+userRouter.put("/update-user-info",updateAccessToken, isAutheticated, updateUserInfo);
 
-userRouter.put("/update-user-password", isAutheticated, updatePassword);
+userRouter.put("/update-user-password",updateAccessToken, isAutheticated, updatePassword);
 
-userRouter.put("/update-user-avatar", isAutheticated, updateProfilePicture);
+userRouter.put("/update-user-avatar",updateAccessToken, isAutheticated, updateProfilePicture);
 
 userRouter.get(
   "/get-users",
+  updateAccessToken,
   isAutheticated,
   authorizeRoles("admin"),
   getAllusers
@@ -46,6 +47,7 @@ userRouter.get(
 
 userRouter.put(
   "/update-users",
+  updateAccessToken,
   isAutheticated,
   authorizeRoles("admin"),
   updateUserRole
@@ -53,6 +55,7 @@ userRouter.put(
 
 userRouter.delete(
   `/delete-user/:id`,
+  updateAccessToken,
   isAutheticated,
   authorizeRoles("admin"),
   deleteUser
