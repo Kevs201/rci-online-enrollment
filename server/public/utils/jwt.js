@@ -12,7 +12,7 @@ exports.accessTokenOptions = {
     maxAge: accessTokenExpire * 60 * 60 * 1000,
     httpOnly: true,
     sameSite: "none",
-    secure: true,
+    secure: true
 };
 // Cookie options for the refresh token
 exports.refreshTokenOptions = {
@@ -20,14 +20,18 @@ exports.refreshTokenOptions = {
     maxAge: refreshTokenExpire * 24 * 60 * 60 * 1000,
     httpOnly: true,
     sameSite: "none",
-    secure: true,
+    secure: true
 };
 // Send token and set session in Redis
 const sendToken = (user, statusCode, res) => {
     const accessToken = user.SignAccessToken(); // Generate access token
     const refreshToken = user.SignRefreshToken(); // Generate refresh token
-    // Ensure user._id is treated as a string for Redis key
+    // Upload session to Redis (use user ID as a string for the key)
     redis_1.redis.set(user._id.toString(), JSON.stringify(user));
+    // Only set secure to true in production
+    if (process.env.NODE_ENV === "production") {
+        exports.accessTokenOptions.secure = true;
+    }
     // Set cookies for access and refresh tokens
     res.cookie("access_token", accessToken, exports.accessTokenOptions);
     res.cookie("refresh_token", refreshToken, exports.refreshTokenOptions);
@@ -36,7 +40,7 @@ const sendToken = (user, statusCode, res) => {
         success: true,
         user,
         accessToken,
+        refreshToken
     });
 };
 exports.sendToken = sendToken;
-/*  */ 

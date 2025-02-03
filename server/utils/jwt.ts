@@ -24,7 +24,7 @@ export const accessTokenOptions: ITokenOptions = {
   maxAge: accessTokenExpire * 60 * 60 * 1000, // 1 hour
   httpOnly: true,
   sameSite: "none",
-  secure: true,
+  secure: true
 };
 
 // Cookie options for the refresh token
@@ -33,7 +33,7 @@ export const refreshTokenOptions: ITokenOptions = {
   maxAge: refreshTokenExpire * 24 * 60 * 60 * 1000, // 20 hours
   httpOnly: true,
   sameSite: "none",
-  secure: true,
+  secure: true
 };
 
 // Send token and set session in Redis
@@ -41,8 +41,13 @@ export const sendToken = (user: IUser, statusCode: number, res: Response) => {
   const accessToken = user.SignAccessToken(); // Generate access token
   const refreshToken = user.SignRefreshToken(); // Generate refresh token
 
-  // Ensure user._id is treated as a string for Redis key
+  // Upload session to Redis (use user ID as a string for the key)
   redis.set(user._id.toString(), JSON.stringify(user));
+
+  // Only set secure to true in production
+  if (process.env.NODE_ENV === "production") {
+    accessTokenOptions.secure = true;
+  }
 
   // Set cookies for access and refresh tokens
   res.cookie("access_token", accessToken, accessTokenOptions);
@@ -53,6 +58,6 @@ export const sendToken = (user: IUser, statusCode: number, res: Response) => {
     success: true,
     user,
     accessToken,
+    refreshToken
   });
 };
-/*  */
