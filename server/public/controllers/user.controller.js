@@ -140,37 +140,52 @@ exports.logoutUser = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, next) =>
 // update access token
 exports.updateAccessToken = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Rename the variable for the refresh token from the cookies
-        const refreshTokenFromCookies = req.cookies.refresh_token;
-        // Use the correct variable for verification
-        const decoded = jsonwebtoken_1.default.verify(refreshTokenFromCookies, // Use the renamed variable here
-        process.env.REFRESH_TOKEN);
-        const message = "Could not refresh token";
-        if (!decoded) {
-            return next(new ErrorHandler_1.default(message, 400));
+        const refresh_token = req.cookies.refresh_token;
+        // Check if refresh token exists
+        if (!refresh_token) {
+            return next(new ErrorHandler_1.default("Refresh token is missing", 400));
         }
-        // Get user session from Redis
+        let decoded;
+        try {
+            decoded = jsonwebtoken_1.default.verify(refresh_token, process.env.REFRESH_TOKEN);
+        }
+        catch (err) {
+            return next(new ErrorHandler_1.default("Invalid or expired refresh token", 401));
+        }
+        // Retrieve session from Redis using the decoded user ID
         const session = yield redis_1.redis.get(decoded.id);
         if (!session) {
-            return next(new ErrorHandler_1.default(message, 400));
+            return next(new ErrorHandler_1.default("Please login for access the resource!", 401));
         }
+        // Parse the user data from the session
         const user = JSON.parse(session);
-        // Generate new access and refresh tokens
-        const accessToken = jsonwebtoken_1.default.sign({ id: user.id }, process.env.ACCESS_TOKEN, {
-            expiresIn: "5m",
-        });
-        const refreshToken = jsonwebtoken_1.default.sign(// This one is the new refresh token for setting in the cookie
-        { id: user._id }, process.env.REFRESH_TOKEN, {
-            expiresIn: "3d",
-        });
-        // Set new access and refresh tokens in cookies
-        res.cookie("access_token", accessToken, jwt_1.accessTokenOptions);
-        res.cookie("refresh_token", refreshToken, jwt_1.refreshTokenOptions); // Use the new refresh token here
-        // Send response with new access token
-        res.status(200).json({
-            status: "success",
-            accessToken,
-        });
+        // Generate a new access token
+        const accessToken = jsonwebtoken_1.default.sign({ id: user._id }, process.env.ACCESS_TOKEN, { expiresIn: "5m" } // Adjust the expiry time as needed
+        );
+        // Generate a new refresh token
+        const refreshToken = jsonwebtoken_1.default.sign({ id: user._id }, process.env.REFRESH_TOKEN, { expiresIn: "3d" } // Adjust the expiry time as needed
+        );
+        // Attach user to the request object if needed in subsequent middleware
+        req.user = user;
+        // Define cookie options for access and refresh tokens
+        const accessTokenOptions = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 5 * 60 * 1000, // 5 minutes
+        };
+        const refreshTokenOptions = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 3 * 24 * 60 * 60 * 1000, // 3 days
+        };
+        // Set the access and refresh tokens as cookies in the response
+        res.cookie("access_token", accessToken, accessTokenOptions);
+        res.cookie("refresh_token", refreshToken, refreshTokenOptions);
+        yield redis_1.redis.set(user._id, JSON.stringify(user), "EX", 604800); // 7 days
+        // Send the response with the new access token
+        next();
     }
     catch (error) {
         return next(new ErrorHandler_1.default(error.message, 400));
