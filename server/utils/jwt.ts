@@ -41,7 +41,8 @@ export const sendToken = (user: IUser, statusCode: number, res: Response) => {
   const accessToken = user.SignAccessToken(); // Generate access token
   const refreshToken = user.SignRefreshToken(); // Generate refresh token
 
-  redis.set(user._id, JSON.stringify(user) as any);
+  // Ensure user._id is treated as a string for Redis key
+  redis.set(user._id.toString(), JSON.stringify(user));
 
   // Set cookies for access and refresh tokens
   res.cookie("access_token", accessToken, accessTokenOptions);
@@ -54,3 +55,4 @@ export const sendToken = (user: IUser, statusCode: number, res: Response) => {
     accessToken,
   });
 };
+/*  */
