@@ -218,7 +218,7 @@ export const updateAccessToken = CatchAsyncError(
       }
 
       // Retrieve session from Redis using the decoded user ID
-      const session = await redis.get(decoded.id as string);
+      const session = await redis.get(decoded._id as string);
 
       if (!session) {
         return next(
