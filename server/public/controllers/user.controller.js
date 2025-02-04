@@ -137,7 +137,7 @@ exports.logoutUser = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, next) =>
         return next(new ErrorHandler_1.default(error.message, 400));
     }
 }));
-// update access token
+// Update Access Token function
 exports.updateAccessToken = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Ensure that refresh token exists in the request cookies
@@ -187,9 +187,14 @@ exports.updateAccessToken = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, n
         res.cookie("access_token", accessToken, accessTokenOptions);
         res.cookie("refresh_token", refreshToken, refreshTokenOptions);
         // Save the user session in Redis for 7 days
-        yield redis_1.redis.set(user._id, JSON.stringify(user), "EX", 604800); // 7 days expiration
+        yield redis_1.redis.set(user._id.toString(), JSON.stringify(user), "EX", 604800); // 7 days expiration
         // Send the response with the new access token
-        next();
+        res.status(200).json({
+            success: true,
+            message: "Tokens updated successfully",
+            accessToken,
+            refreshToken,
+        });
     }
     catch (error) {
         // Handle any other errors that occur during the process

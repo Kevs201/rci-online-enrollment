@@ -182,7 +182,7 @@ export const logoutUser = CatchAsyncError(
       res.cookie("access_token", "", { maxAge: 1 });
       res.cookie("refresh_token", "", { maxAge: 1 });
       const userId = req.user?._id?.toString() || "";
-      if(userId){
+      if (userId) {
         await redis.del([userId]);
       }
       res.status(200).json({
@@ -195,7 +195,7 @@ export const logoutUser = CatchAsyncError(
   }
 );
 
-// update access token
+// Update Access Token function
 export const updateAccessToken = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -224,7 +224,12 @@ export const updateAccessToken = CatchAsyncError(
       const session = await redis.get(decoded.id as string);
 
       if (!session) {
-        return next(new ErrorHandler("Session not found. Please login to access the resource.", 401));
+        return next(
+          new ErrorHandler(
+            "Session not found. Please login to access the resource.",
+            401
+          )
+        );
       }
 
       // Parse the user data from the session
@@ -267,13 +272,20 @@ export const updateAccessToken = CatchAsyncError(
       res.cookie("refresh_token", refreshToken, refreshTokenOptions);
 
       // Save the user session in Redis for 7 days
-      await redis.set(user._id, JSON.stringify(user), "EX", 604800); // 7 days expiration
+      await redis.set(user._id.toString(), JSON.stringify(user), "EX", 604800); // 7 days expiration
 
       // Send the response with the new access token
-      next();
+      res.status(200).json({
+        success: true,
+        message: "Tokens updated successfully",
+        accessToken,
+        refreshToken,
+      });
     } catch (error: any) {
       // Handle any other errors that occur during the process
-      return next(new ErrorHandler(error.message || "Something went wrong", 500));
+      return next(
+        new ErrorHandler(error.message || "Something went wrong", 500)
+      );
     }
   }
 );
@@ -358,7 +370,9 @@ export const updatePassword = CatchAsyncError(
 
       // Validate that both oldPassword and newPassword are provided
       if (!oldPassword || !newPassword) {
-        return next(new ErrorHandler("Please enter both old and new password", 400));
+        return next(
+          new ErrorHandler("Please enter both old and new password", 400)
+        );
       }
 
       // Ensure userId is a valid string
@@ -398,7 +412,6 @@ export const updatePassword = CatchAsyncError(
     }
   }
 );
-
 
 interface IUpdateProfilePicture {
   avatar: string;
