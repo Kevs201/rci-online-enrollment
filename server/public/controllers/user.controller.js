@@ -153,7 +153,7 @@ exports.updateAccessToken = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, n
             return next(new ErrorHandler_1.default("Invalid or expired refresh token", 401));
         }
         // Retrieve session from Redis using the decoded user ID
-        const session = yield redis_1.redis.get(decoded.id);
+        const session = yield redis_1.redis.get(decoded._id);
         if (!session) {
             return next(new ErrorHandler_1.default("Please login for access the resource!", 401));
         }

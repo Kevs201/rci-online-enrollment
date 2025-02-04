@@ -27,7 +27,7 @@ const sendToken = (user, statusCode, res) => {
     const accessToken = user.SignAccessToken(); // Generate access token
     const refreshToken = user.SignRefreshToken(); // Generate refresh token
     // Upload session to Redis (use user ID as a string for the key)
-    redis_1.redis.set(user.id.toString(), JSON.stringify(user));
+    redis_1.redis.set(user._id.toString(), JSON.stringify(user));
     // Only set secure to true in production
     if (process.env.NODE_ENV === "production") {
         exports.accessTokenOptions.secure = true;
