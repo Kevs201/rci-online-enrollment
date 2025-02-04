@@ -294,13 +294,51 @@ export const updateAccessToken = CatchAsyncError(
 export const getUserInfo = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user?._id as string;
-      getUserById(userId, res);
+      // 1. Ensure that access token exists in the request cookies
+      const access_token = req.cookies.access_token as string;
+
+      // 2. Check if access token is provided
+      if (!access_token) {
+        return next(new ErrorHandler("Access token is missing", 401));
+      }
+
+      // 3. Decode and verify the access token
+      let decoded: JwtPayload;
+      try {
+        decoded = jwt.verify(
+          access_token,
+          process.env.ACCESS_TOKEN as string
+        ) as JwtPayload;
+      } catch (err) {
+        // Handle invalid or expired access token
+        return next(new ErrorHandler("Invalid or expired access token", 401));
+      }
+
+      // 4. Fetch user data from Redis using the decoded user ID
+      const userId = decoded.id as string; // Extract user ID from the token
+      const session = await redis.get(userId);
+
+      if (!session) {
+        return next(new ErrorHandler("Session not found. Please login again.", 401));
+      }
+
+      // 5. Parse the user data from Redis session
+      const user = JSON.parse(session);
+
+      // Optionally, you can fetch updated data from the database if necessary
+      // const user = await getUserById(userId);
+
+      // 6. Send the user data in the response
+      res.status(200).json({
+        success: true,
+        user,
+      });
     } catch (error: any) {
-      return next(new ErrorHandler(error.message, 400));
+      return next(new ErrorHandler(error.message || "Something went wrong", 500));
     }
   }
 );
+
 
 interface ISocialAuthBody {
   email: string;

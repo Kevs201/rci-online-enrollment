@@ -203,13 +203,40 @@ exports.updateAccessToken = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, n
 }));
 // get user info
 exports.getUserInfo = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _c;
     try {
-        const userId = (_c = req.user) === null || _c === void 0 ? void 0 : _c._id;
-        (0, user_service_1.getUserById)(userId, res);
+        // 1. Ensure that access token exists in the request cookies
+        const access_token = req.cookies.access_token;
+        // 2. Check if access token is provided
+        if (!access_token) {
+            return next(new ErrorHandler_1.default("Access token is missing", 401));
+        }
+        // 3. Decode and verify the access token
+        let decoded;
+        try {
+            decoded = jsonwebtoken_1.default.verify(access_token, process.env.ACCESS_TOKEN);
+        }
+        catch (err) {
+            // Handle invalid or expired access token
+            return next(new ErrorHandler_1.default("Invalid or expired access token", 401));
+        }
+        // 4. Fetch user data from Redis using the decoded user ID
+        const userId = decoded.id; // Extract user ID from the token
+        const session = yield redis_1.redis.get(userId);
+        if (!session) {
+            return next(new ErrorHandler_1.default("Session not found. Please login again.", 401));
+        }
+        // 5. Parse the user data from Redis session
+        const user = JSON.parse(session);
+        // Optionally, you can fetch updated data from the database if necessary
+        // const user = await getUserById(userId);
+        // 6. Send the user data in the response
+        res.status(200).json({
+            success: true,
+            user,
+        });
     }
     catch (error) {
-        return next(new ErrorHandler_1.default(error.message, 400));
+        return next(new ErrorHandler_1.default(error.message || "Something went wrong", 500));
     }
 }));
 // social auth
@@ -230,10 +257,10 @@ exports.socialAuth = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, next) =>
     }
 }));
 exports.updateUserInfo = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _d;
+    var _c;
     try {
         const { name } = req.body;
-        const userId = (_d = req.user) === null || _d === void 0 ? void 0 : _d._id;
+        const userId = (_c = req.user) === null || _c === void 0 ? void 0 : _c._id;
         const user = yield user_model_1.default.findById(userId);
         if (name && user) {
             user.name = name;
@@ -250,7 +277,7 @@ exports.updateUserInfo = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, next
     }
 }));
 exports.updatePassword = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _e;
+    var _d;
     try {
         const { oldPassword, newPassword } = req.body;
         // Validate that both oldPassword and newPassword are provided
@@ -258,7 +285,7 @@ exports.updatePassword = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, next
             return next(new ErrorHandler_1.default("Please enter both old and new password", 400));
         }
         // Ensure userId is a valid string
-        const userId = (_e = req.user) === null || _e === void 0 ? void 0 : _e._id; // Type assertion to ensure it's a string
+        const userId = (_d = req.user) === null || _d === void 0 ? void 0 : _d._id; // Type assertion to ensure it's a string
         if (!userId) {
             return next(new ErrorHandler_1.default("User not authenticated", 400));
         }
@@ -289,16 +316,16 @@ exports.updatePassword = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, next
 }));
 // update profile password
 exports.updateProfilePicture = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _f, _g, _h;
+    var _e, _f, _g;
     try {
         const { avatar } = req.body;
-        const userId = (_f = req.user) === null || _f === void 0 ? void 0 : _f._id;
+        const userId = (_e = req.user) === null || _e === void 0 ? void 0 : _e._id;
         const user = yield user_model_1.default.findById(userId);
         // if user have one avatar then call this if
         if (avatar && user) {
-            if ((_g = user === null || user === void 0 ? void 0 : user.avatar) === null || _g === void 0 ? void 0 : _g.public_id) {
+            if ((_f = user === null || user === void 0 ? void 0 : user.avatar) === null || _f === void 0 ? void 0 : _f.public_id) {
                 // first delete the image
-                yield cloudinary_1.default.v2.uploader.destroy((_h = user === null || user === void 0 ? void 0 : user.avatar) === null || _h === void 0 ? void 0 : _h.public_id);
+                yield cloudinary_1.default.v2.uploader.destroy((_g = user === null || user === void 0 ? void 0 : user.avatar) === null || _g === void 0 ? void 0 : _g.public_id);
                 const myCloud = yield cloudinary_1.default.v2.uploader.upload(avatar, {
                     folder: "avatars",
                     width: 150,
