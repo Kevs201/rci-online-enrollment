@@ -21,7 +21,7 @@ userRouter.post("/registration", registrationUser);
 
 userRouter.post("/activate-user", activateUser);
 
-userRouter.post("/login" , loginUser);
+userRouter.post("/login" ,isAutheticated, loginUser);
 
 userRouter.get("/logout", isAutheticated, logoutUser);
 
