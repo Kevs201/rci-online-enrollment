@@ -6,7 +6,7 @@ import { redis } from "../utils/redis";
 
 // Define a custom interface for the JWT payload
 interface IJwtPayload extends JwtPayload {
-  id: string; // Define the expected structure for the decoded token
+  _id: string; // Define the expected structure for the decoded token
 }
 
 // authenticated user

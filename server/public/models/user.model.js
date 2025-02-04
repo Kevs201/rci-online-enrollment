@@ -35,7 +35,7 @@ const userSchema = new mongoose_1.default.Schema({
     },
     password: {
         type: String,
-        minlength: [6, "Password must be at least 6 characters"],
+        minlength: [6, "Password must be at least 6 character"],
         select: false,
     },
     avatar: {
@@ -66,10 +66,16 @@ userSchema.pre("save", function (next) {
         next();
     });
 });
-// sign access token (only the access token is generated now)
+// sign access token
 userSchema.methods.SignAccessToken = function () {
     return jsonwebtoken_1.default.sign({ id: this._id }, process.env.ACCESS_TOKEN || '', {
-        expiresIn: "5m", // Access token expiration time (5 minutes)
+        expiresIn: "5m",
+    });
+};
+// sign refresh token
+userSchema.methods.SignRefreshToken = function () {
+    return jsonwebtoken_1.default.sign({ id: this._id }, process.env.REFRESH_TOKEN || '', {
+        expiresIn: "7d",
     });
 };
 // Compare password

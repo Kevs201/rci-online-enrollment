@@ -19,6 +19,7 @@ export interface IUser extends Document {
   courses: Array<{ courseId: string }>;
   comparePassword: (password: string) => Promise<boolean>;
   SignAccessToken: () => string;
+  SignRefreshToken: () => string;
 }
 
 const userSchema: Schema<IUser> = new mongoose.Schema(
@@ -40,7 +41,7 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
     },
     password: {
       type: String,
-      minlength: [6, "Password must be at least 6 characters"],
+      minlength: [6, "Password must be at least 6 character"],
       select: false,
     },
     avatar: {
@@ -73,10 +74,17 @@ userSchema.pre<IUser>("save", async function (next) {
   next();
 });
 
-// sign access token (only the access token is generated now)
+// sign access token
 userSchema.methods.SignAccessToken = function () {
-  return jwt.sign({ id: this._id }, process.env.ACCESS_TOKEN || '', {
-    expiresIn: "5m", // Access token expiration time (5 minutes)
+  return jwt.sign({ id: this._id }, process.env.ACCESS_TOKEN || '',{
+    expiresIn: "5m",
+  });
+};
+
+// sign refresh token
+userSchema.methods.SignRefreshToken = function () {
+  return jwt.sign({ id: this._id }, process.env.REFRESH_TOKEN || '',{
+    expiresIn: "7d",
   });
 };
 

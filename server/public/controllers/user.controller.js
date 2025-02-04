@@ -140,33 +140,37 @@ exports.logoutUser = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, next) =>
 // Update Access Token function
 exports.updateAccessToken = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Ensure that the user is authenticated by verifying the access token
-        const access_token = req.cookies.access_token;
+        // Ensure that refresh token exists in the request cookies
+        const refresh_token = req.cookies.refresh_token;
         let decoded;
         try {
-            // Attempt to verify the access token
-            decoded = jsonwebtoken_1.default.verify(access_token, process.env.ACCESS_TOKEN);
+            // Attempt to verify the refresh token
+            decoded = jsonwebtoken_1.default.verify(refresh_token, process.env.ACCESS_TOKEN);
         }
         catch (err) {
-            // Handle invalid or expired access token
-            return next(new ErrorHandler_1.default("Invalid or expired access token", 401));
+            // Handle invalid or expired refresh token
+            return next(new ErrorHandler_1.default("Invalid or expired refresh token", 401));
         }
         // Retrieve session from Redis using the decoded user ID
-        const session = yield redis_1.redis.get(decoded.id);
+        const session = yield redis_1.redis.get(decoded._id);
         if (!session) {
             return next(new ErrorHandler_1.default("Session not found. Please login to access the resource.", 401));
         }
         // Parse the user data from the session
         const user = JSON.parse(session);
-        // Generate a new access token
-        const newAccessToken = jsonwebtoken_1.default.sign({ id: user._id }, process.env.ACCESS_TOKEN, { expiresIn: "5m" } // Adjust based on your desired expiration
-        );
-        // Set the new access token as a cookie
-        res.cookie("access_token", newAccessToken, jwt_1.accessTokenOptions);
+        // Generate new access token and refresh token
+        const accessToken = jsonwebtoken_1.default.sign({ id: user._id }, process.env.ACCESS_TOKEN, { expiresIn: "5m" });
+        const refreshToken = jsonwebtoken_1.default.sign({ id: user._id }, process.env.REFRESH_TOKEN, { expiresIn: "3d" });
+        // Set the new tokens as cookies
+        res.cookie("access_token", accessToken, jwt_1.accessTokenOptions);
+        res.cookie("refresh_token", refreshToken, jwt_1.refreshTokenOptions);
+        // Save session again in Redis for 7 days
+        yield redis_1.redis.set(user._id.toString(), JSON.stringify(user), "EX", 604800);
         res.status(200).json({
             success: true,
-            message: "Access token updated successfully",
-            accessToken: newAccessToken,
+            message: "Tokens updated successfully",
+            accessToken,
+            refreshToken,
         });
     }
     catch (error) {
