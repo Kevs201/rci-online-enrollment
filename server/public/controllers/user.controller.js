@@ -142,20 +142,17 @@ exports.updateAccessToken = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, n
     try {
         // Ensure that refresh token exists in the request cookies
         const refresh_token = req.cookies.refresh_token;
-        if (!refresh_token) {
-            return next(new ErrorHandler_1.default("Refresh token is missing", 400));
-        }
         let decoded;
         try {
             // Attempt to verify the refresh token
-            decoded = jsonwebtoken_1.default.verify(refresh_token, process.env.REFRESH_TOKEN);
+            decoded = jsonwebtoken_1.default.verify(refresh_token, process.env.ACCESS_TOKEN);
         }
         catch (err) {
             // Handle invalid or expired refresh token
             return next(new ErrorHandler_1.default("Invalid or expired refresh token", 401));
         }
         // Retrieve session from Redis using the decoded user ID
-        const session = yield redis_1.redis.get(decoded.id);
+        const session = yield redis_1.redis.get(decoded._id);
         if (!session) {
             return next(new ErrorHandler_1.default("Session not found. Please login to access the resource.", 401));
         }

@@ -202,15 +202,13 @@ export const updateAccessToken = CatchAsyncError(
       // Ensure that refresh token exists in the request cookies
       const refresh_token = req.cookies.refresh_token as string;
 
-      if (!refresh_token) {
-        return next(new ErrorHandler("Refresh token is missing", 400));
-      }
+  
 
       let decoded: JwtPayload;
       try {
         // Attempt to verify the refresh token
         decoded = jwt.verify(
-          refresh_token, process.env.REFRESH_TOKEN as string
+          refresh_token, process.env.ACCESS_TOKEN as string
         ) as JwtPayload;
       } catch (err) {
         // Handle invalid or expired refresh token
@@ -218,7 +216,7 @@ export const updateAccessToken = CatchAsyncError(
       }
 
       // Retrieve session from Redis using the decoded user ID
-      const session = await redis.get(decoded.id as string);
+      const session = await redis.get(decoded._id as string);
 
       if (!session) {
         return next(
