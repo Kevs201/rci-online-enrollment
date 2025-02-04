@@ -21,13 +21,13 @@ userRouter.post("/registration", registrationUser);
 
 userRouter.post("/activate-user", activateUser);
 
-userRouter.post("/login" ,isAutheticated, loginUser);
+userRouter.post("/login" , loginUser);
 
 userRouter.get("/logout", isAutheticated, logoutUser);
 
-userRouter.get("/refresh", updateAccessToken);
+userRouter.get("/refresh", isAutheticated);
 
-userRouter.get("/me" , getUserInfo);
+userRouter.get("/me" , isAutheticated, getUserInfo);
 
 userRouter.post("/social-auth", socialAuth);
 
