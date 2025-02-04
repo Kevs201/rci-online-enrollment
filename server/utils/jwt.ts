@@ -22,18 +22,17 @@ const refreshTokenExpire = parseInt(
 export const accessTokenOptions: ITokenOptions = {
   expires: new Date(Date.now() + accessTokenExpire * 60 * 60 * 1000), // 1 hour expiration
   maxAge: accessTokenExpire * 60 * 60 * 1000, // 1 hour
-  httpOnly: true,
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Different setting for dev vs prod
-  secure: process.env.NODE_ENV === "production", // Secure in production
+  httpOnly: true, // Ensure the cookie is not accessible via JavaScript
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  secure: process.env.NODE_ENV === "production", // Use secure cookies in production
 };
 
-// Cookie options for the refresh token
 export const refreshTokenOptions: ITokenOptions = {
   expires: new Date(Date.now() + refreshTokenExpire * 24 * 60 * 60 * 1000), // 20 hours expiration
   maxAge: refreshTokenExpire * 24 * 60 * 60 * 1000, // 20 hours
-  httpOnly: true,
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Different setting for dev vs prod
-  secure: process.env.NODE_ENV === "production", // Secure in production
+  httpOnly: true, // Ensure the cookie is not accessible via JavaScript
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  secure: process.env.NODE_ENV === "production", // Use secure cookies in production
 };
 
 // Send token and set session in Redis

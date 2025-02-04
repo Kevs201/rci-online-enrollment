@@ -23,14 +23,14 @@ exports.app.use(express_1.default.json({ limit: "50mb" }));
 exports.app.use((0, cookie_parser_1.default)());
 // cors => corss origin resource sharing
 exports.app.use((0, cors_1.default)({
-    origin: ['https://rci-online-enrollment-client.vercel.app'],
-    credentials: true,
+    origin: "https://rci-online-enrollment-client.vercel.app",
+    credentials: true, // Ensure cookies are sent with the request
 }));
 // api request limit
 const limiter = (0, express_rate_limit_1.rateLimit)({
     windowMs: 15 * 60 * 1000,
     limit: 100,
-    standardHeaders: 'draft-8',
+    standardHeaders: "draft-8",
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
     // store: ... , // Redis, Memcached, etc. See below.
 });

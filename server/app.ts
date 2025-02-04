@@ -10,7 +10,7 @@ import orderRouter from "./routes/order.route";
 import notificationRouter from "./routes/notification.route";
 import analyticsRouter from "./routes/analytics.route";
 import layoutRouter from "./routes/layout.route";
-import { rateLimit } from 'express-rate-limit'
+import { rateLimit } from "express-rate-limit";
 
 // body parser
 app.use(express.json({ limit: "50mb" }));
@@ -21,19 +21,19 @@ app.use(cookieParser());
 // cors => corss origin resource sharing
 app.use(
   cors({
-    origin:['https://rci-online-enrollment-client.vercel.app'],
-    credentials: true,
+    origin: "https://rci-online-enrollment-client.vercel.app",
+    credentials: true, // Ensure cookies are sent with the request
   })
 );
 
 // api request limit
 const limiter = rateLimit({
-	windowMs: 15 * 60 * 1000, // 15 minutes
-	limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
-	standardHeaders: 'draft-8', // draft-6: `RateLimit-*` headers; draft-7 & draft-8: combined `RateLimit` header
-	legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
-	// store: ... , // Redis, Memcached, etc. See below.
-})
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+  standardHeaders: "draft-8", // draft-6: `RateLimit-*` headers; draft-7 & draft-8: combined `RateLimit` header
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+  // store: ... , // Redis, Memcached, etc. See below.
+});
 
 // testing api
 app.get("/test", (req: Request, res: Response, next: NextFunction) => {
@@ -44,7 +44,15 @@ app.get("/test", (req: Request, res: Response, next: NextFunction) => {
 });
 
 // routes
-app.use("/api/v1", userRouter,orderRouter,courseRouter,notificationRouter,analyticsRouter,layoutRouter);
+app.use(
+  "/api/v1",
+  userRouter,
+  orderRouter,
+  courseRouter,
+  notificationRouter,
+  analyticsRouter,
+  layoutRouter
+);
 
 // unkown route
 app.all("*", (req: Request, res: Response, next: NextFunction) => {
@@ -57,4 +65,3 @@ app.all("*", (req: Request, res: Response, next: NextFunction) => {
 app.use(limiter);
 
 app.use(ErrorMiddleware);
-

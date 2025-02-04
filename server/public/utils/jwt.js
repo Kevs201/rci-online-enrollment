@@ -12,15 +12,14 @@ exports.accessTokenOptions = {
     maxAge: accessTokenExpire * 60 * 60 * 1000,
     httpOnly: true,
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    secure: process.env.NODE_ENV === "production", // Secure in production
+    secure: process.env.NODE_ENV === "production", // Use secure cookies in production
 };
-// Cookie options for the refresh token
 exports.refreshTokenOptions = {
     expires: new Date(Date.now() + refreshTokenExpire * 24 * 60 * 60 * 1000),
     maxAge: refreshTokenExpire * 24 * 60 * 60 * 1000,
     httpOnly: true,
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    secure: process.env.NODE_ENV === "production", // Secure in production
+    secure: process.env.NODE_ENV === "production", // Use secure cookies in production
 };
 // Send token and set session in Redis
 const sendToken = (user, statusCode, res) => {
