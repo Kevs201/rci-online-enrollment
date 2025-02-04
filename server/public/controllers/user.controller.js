@@ -140,22 +140,25 @@ exports.logoutUser = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, next) =>
 // update access token
 exports.updateAccessToken = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        // Ensure that refresh token exists in the request cookies
         const refresh_token = req.cookies.refresh_token;
         // Check if refresh token exists
         if (!refresh_token) {
-            return next(new ErrorHandler_1.default("Refresh token is missing", 400));
+            return next(new ErrorHandler_1.default("Refresh token is missing", 400)); // Error if no refresh token is provided
         }
         let decoded;
         try {
+            // Attempt to verify the refresh token
             decoded = jsonwebtoken_1.default.verify(refresh_token, process.env.REFRESH_TOKEN);
         }
         catch (err) {
+            // Handle invalid or expired refresh token
             return next(new ErrorHandler_1.default("Invalid or expired refresh token", 401));
         }
         // Retrieve session from Redis using the decoded user ID
-        const session = yield redis_1.redis.get(decoded._id);
+        const session = yield redis_1.redis.get(decoded.id);
         if (!session) {
-            return next(new ErrorHandler_1.default("Please login for access the resource!", 401));
+            return next(new ErrorHandler_1.default("Session not found. Please login to access the resource.", 401));
         }
         // Parse the user data from the session
         const user = JSON.parse(session);
@@ -183,12 +186,14 @@ exports.updateAccessToken = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, n
         // Set the access and refresh tokens as cookies in the response
         res.cookie("access_token", accessToken, accessTokenOptions);
         res.cookie("refresh_token", refreshToken, refreshTokenOptions);
-        yield redis_1.redis.set(user._id, JSON.stringify(user), "EX", 604800); // 7 days
+        // Save the user session in Redis for 7 days
+        yield redis_1.redis.set(user._id, JSON.stringify(user), "EX", 604800); // 7 days expiration
         // Send the response with the new access token
         next();
     }
     catch (error) {
-        return next(new ErrorHandler_1.default(error.message, 400));
+        // Handle any other errors that occur during the process
+        return next(new ErrorHandler_1.default(error.message || "Something went wrong", 500));
     }
 }));
 // get user info

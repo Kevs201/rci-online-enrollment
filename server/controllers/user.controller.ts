@@ -199,31 +199,32 @@ export const logoutUser = CatchAsyncError(
 export const updateAccessToken = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      // Ensure that refresh token exists in the request cookies
       const refresh_token = req.cookies.refresh_token as string;
 
       // Check if refresh token exists
       if (!refresh_token) {
-        return next(new ErrorHandler("Refresh token is missing", 400));
+        return next(new ErrorHandler("Refresh token is missing", 400)); // Error if no refresh token is provided
       }
 
       let decoded: JwtPayload;
 
       try {
+        // Attempt to verify the refresh token
         decoded = jwt.verify(
           refresh_token,
           process.env.REFRESH_TOKEN as string
         ) as JwtPayload;
       } catch (err) {
+        // Handle invalid or expired refresh token
         return next(new ErrorHandler("Invalid or expired refresh token", 401));
       }
 
       // Retrieve session from Redis using the decoded user ID
-      const session = await redis.get(decoded._id as string);
+      const session = await redis.get(decoded.id as string);
 
       if (!session) {
-        return next(
-          new ErrorHandler("Please login for access the resource!", 401)
-        );
+        return next(new ErrorHandler("Session not found. Please login to access the resource.", 401));
       }
 
       // Parse the user data from the session
@@ -250,28 +251,29 @@ export const updateAccessToken = CatchAsyncError(
       const accessTokenOptions: CookieOptions = {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production", // Set this to true in production for secure cookies
-        sameSite: "strict", // This should be valid, but you can try explicitly typing it if TypeScript still complains
+        sameSite: "strict", // SameSite set to strict for better security
         maxAge: 5 * 60 * 1000, // 5 minutes
       };
-      
+
       const refreshTokenOptions: CookieOptions = {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict", // This should be valid as well
+        sameSite: "strict", // SameSite set to strict for better security
         maxAge: 3 * 24 * 60 * 60 * 1000, // 3 days
       };
-      
 
       // Set the access and refresh tokens as cookies in the response
       res.cookie("access_token", accessToken, accessTokenOptions);
       res.cookie("refresh_token", refreshToken, refreshTokenOptions);
 
-      await redis.set(user._id, JSON.stringify(user), "EX", 604800); // 7 days
+      // Save the user session in Redis for 7 days
+      await redis.set(user._id, JSON.stringify(user), "EX", 604800); // 7 days expiration
 
       // Send the response with the new access token
       next();
     } catch (error: any) {
-      return next(new ErrorHandler(error.message, 400));
+      // Handle any other errors that occur during the process
+      return next(new ErrorHandler(error.message || "Something went wrong", 500));
     }
   }
 );
