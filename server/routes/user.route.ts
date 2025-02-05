@@ -25,7 +25,10 @@ userRouter.post("/login" , loginUser);
 
 userRouter.get("/logout", isAutheticated, logoutUser);
 
-userRouter.get("/refresh", updateAccessToken);
+userRouter.get('/refresh', (req, res, next) => {
+  console.log("Refreshing token...");
+  next();
+}, updateAccessToken);
 
 userRouter.get("/me" , updateAccessToken, isAutheticated, getUserInfo);
 

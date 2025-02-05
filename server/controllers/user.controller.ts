@@ -209,8 +209,8 @@ export const updateAccessToken = CatchAsyncError(
       if (!decoded) {
         return next(new ErrorHandler(message, 400));
       }
-      const session = await redis.get(decoded.id as string);
 
+      const session = await redis.get(decoded.id as string);
       if (!session) {
         return next(new ErrorHandler(message, 400));
       }
@@ -220,32 +220,28 @@ export const updateAccessToken = CatchAsyncError(
       const accessToken = jwt.sign(
         { id: user._id },
         process.env.ACCESS_TOKEN as string,
-        {
-          expiresIn: "5m",
-        }
+        { expiresIn: '5m' }
       );
 
       const refreshToken = jwt.sign(
         { id: user._id },
         process.env.REFRESH_TOKEN as string,
-        {
-          expiresIn: "3d",
-        }
+        { expiresIn: '3d' }
       );
 
-      res.cookie("access_token", accessToken,accessTokenOptions);
-      res.cookie("refresh_token", refreshToken,refreshTokenOptions);
+      res.cookie('access_token', accessToken, accessTokenOptions);
+      res.cookie('refresh_token', refreshToken, refreshTokenOptions);
 
       res.status(200).json({
-        status: "success",
+        status: 'success',
         accessToken,
-      })
-
+      });
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
     }
   }
 );
+
 
 // get user info
 export const getUserInfo = CatchAsyncError(
