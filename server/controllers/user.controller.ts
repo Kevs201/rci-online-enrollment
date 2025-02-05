@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 import e, { Request, Response, NextFunction, CookieOptions } from "express";
-import userModel, { IUser } from "../models/user.model";
+import userModel, {IUser} from "../models/user.model";
 import ErrorHandler from "../utils/ErrorHandler";
 import { CatchAsyncError } from "../middleware/catchAsyncErrors";
 import jwt, { JwtPayload, Secret } from "jsonwebtoken";
@@ -202,8 +202,6 @@ export const updateAccessToken = CatchAsyncError(
       // Ensure that refresh token exists in the request cookies
       const refresh_token = req.cookies.refresh_token as string;
 
-  
-
       let decoded: JwtPayload;
       try {
         // Attempt to verify the refresh token
@@ -226,7 +224,6 @@ export const updateAccessToken = CatchAsyncError(
           )
         );
       }
-
       // Parse the user data from the session
       const user = JSON.parse(session);
 

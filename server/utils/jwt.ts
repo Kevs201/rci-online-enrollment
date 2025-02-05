@@ -13,10 +13,7 @@ interface ITokenOptions {
 
 // Set access token expiration to 60 minutes (1 hour)
 const accessTokenExpire = parseInt(process.env.ACCESS_TOKEN_EXPIRE || "60", 10); // 60 minutes = 1 hour
-const refreshTokenExpire = parseInt(
-  process.env.REFRESH_TOKEN_EXPIRE || "1200",
-  10
-); // 1200 minutes = 20 hours
+const refreshTokenExpire = parseInt(process.env.REFRESH_TOKEN_EXPIRE || "1200",10 ); // 1200 minutes = 20 hours
 
 // Cookie options for the access token
 export const accessTokenOptions: ITokenOptions = {
@@ -41,7 +38,6 @@ export const sendToken = (user: IUser, statusCode: number, res: Response) => {
   const accessToken = user.SignAccessToken(); // Generate access token
   const refreshToken = user.SignRefreshToken(); // Generate refresh token
 
-  // Upload session to Redis (use user ID as a string for the key)
   redis.set(user._id.toString(), JSON.stringify(user));
 
   // Only set secure to true in production

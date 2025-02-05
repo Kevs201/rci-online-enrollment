@@ -68,17 +68,13 @@ userSchema.pre("save", function (next) {
         next();
     });
 });
-// Sign access token
+// sing Access token
 userSchema.methods.SignAccessToken = function () {
-    return jsonwebtoken_1.default.sign({ id: this._id }, process.env.ACCESS_TOKEN || '', {
-        expiresIn: "5m",
-    });
+    return jsonwebtoken_1.default.sign({ id: this._id }, process.env.ACCESS_TOKEN || '');
 };
-// Sign refresh token
+// sign Refresh token
 userSchema.methods.SignRefreshToken = function () {
-    return jsonwebtoken_1.default.sign({ id: this._id }, process.env.REFRESH_TOKEN || '', {
-        expiresIn: "3d",
-    });
+    return jsonwebtoken_1.default.sign({ id: this._id }, process.env.REFRESH_TOKEN || '');
 };
 // Compare password
 userSchema.methods.comparePassword = function (enteredPassword) {
