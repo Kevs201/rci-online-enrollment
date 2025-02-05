@@ -1,7 +1,7 @@
 require("dotenv").config();
 
-import e, { Request, Response, NextFunction, CookieOptions } from "express";
-import userModel, {IUser} from "../models/user.model";
+import e, { Request, Response, NextFunction } from "express";
+import userModel, { IUser } from "../models/user.model";
 import ErrorHandler from "../utils/ErrorHandler";
 import { CatchAsyncError } from "../middleware/catchAsyncErrors";
 import jwt, { JwtPayload, Secret } from "jsonwebtoken";
@@ -199,68 +199,53 @@ export const logoutUser = CatchAsyncError(
 export const updateAccessToken = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // Ensure that refresh token exists in the request cookies
       const refresh_token = req.cookies.refresh_token as string;
+      const decoded = jwt.verify(
+        refresh_token,
+        process.env.REFRESH_TOKEN as string
+      ) as JwtPayload;
 
-      let decoded: JwtPayload;
-      try {
-        // Attempt to verify the refresh token
-        decoded = jwt.verify(
-          refresh_token, process.env.ACCESS_TOKEN as string
-        ) as JwtPayload;
-      } catch (err) {
-        // Handle invalid or expired refresh token
-        return next(new ErrorHandler("Invalid or expired refresh token", 401));
+      const message = "Could not refresh token";
+      if (!decoded) {
+        return next(new ErrorHandler(message, 400));
       }
-
-      // Retrieve session from Redis using the decoded user ID
-      const session = await redis.get(decoded._id as string);
+      const session = await redis.get(decoded.id as string);
 
       if (!session) {
-        return next(
-          new ErrorHandler(
-            "Session not found. Please login to access the resource.",
-            401
-          )
-        );
+        return next(new ErrorHandler(message, 400));
       }
-      // Parse the user data from the session
+
       const user = JSON.parse(session);
 
-      // Generate new access token and refresh token
       const accessToken = jwt.sign(
         { id: user._id },
         process.env.ACCESS_TOKEN as string,
-        { expiresIn: "5m" }
+        {
+          expiresIn: "5m",
+        }
       );
 
       const refreshToken = jwt.sign(
         { id: user._id },
         process.env.REFRESH_TOKEN as string,
-        { expiresIn: "3d" }
+        {
+          expiresIn: "3d",
+        }
       );
 
-      // Set the new tokens as cookies
-      res.cookie("access_token", accessToken, accessTokenOptions);
-      res.cookie("refresh_token", refreshToken, refreshTokenOptions);
-
-      // Save session again in Redis for 7 days
-      await redis.set(user._id.toString(), JSON.stringify(user), "EX", 604800);
+      res.cookie("access_token", accessToken,accessTokenOptions);
+      res.cookie("refresh_token", refreshToken,refreshTokenOptions);
 
       res.status(200).json({
-        success: true,
-        message: "Tokens updated successfully",
+        status: "success",
         accessToken,
-        refreshToken,
-      });
+      })
+
     } catch (error: any) {
-      return next(
-        new ErrorHandler(error.message || "Something went wrong", 500)
-      );
+      return next(new ErrorHandler(error.message, 400));
     }
   }
 );
-
 
 // get user info
 export const getUserInfo = CatchAsyncError(
@@ -291,7 +276,9 @@ export const getUserInfo = CatchAsyncError(
       const session = await redis.get(userId);
 
       if (!session) {
-        return next(new ErrorHandler("Session not found. Please login again.", 401));
+        return next(
+          new ErrorHandler("Session not found. Please login again.", 401)
+        );
       }
 
       // 5. Parse the user data from Redis session
@@ -306,11 +293,12 @@ export const getUserInfo = CatchAsyncError(
         user,
       });
     } catch (error: any) {
-      return next(new ErrorHandler(error.message || "Something went wrong", 500));
+      return next(
+        new ErrorHandler(error.message || "Something went wrong", 500)
+      );
     }
   }
 );
-
 
 interface ISocialAuthBody {
   email: string;

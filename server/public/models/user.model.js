@@ -70,11 +70,15 @@ userSchema.pre("save", function (next) {
 });
 // sing Access token
 userSchema.methods.SignAccessToken = function () {
-    return jsonwebtoken_1.default.sign({ id: this._id }, process.env.ACCESS_TOKEN || '');
+    return jsonwebtoken_1.default.sign({ id: this._id }, process.env.ACCESS_TOKEN || '', {
+        expiresIn: "5m",
+    });
 };
 // sign Refresh token
 userSchema.methods.SignRefreshToken = function () {
-    return jsonwebtoken_1.default.sign({ id: this._id }, process.env.REFRESH_TOKEN || '');
+    return jsonwebtoken_1.default.sign({ id: this._id }, process.env.REFRESH_TOKEN || '', {
+        expiresIn: "3d"
+    });
 };
 // Compare password
 userSchema.methods.comparePassword = function (enteredPassword) {
