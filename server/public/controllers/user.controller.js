@@ -161,7 +161,7 @@ exports.updateAccessToken = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, n
         res.cookie("refresh_token", refreshToken, jwt_1.refreshTokenOptions);
         res.status(200).json({
             status: "success",
-            refreshToken,
+            accessToken,
         });
     }
     catch (error) {

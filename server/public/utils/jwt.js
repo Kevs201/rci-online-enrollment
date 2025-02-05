@@ -39,6 +39,7 @@ const sendToken = (user, statusCode, res) => {
         success: true,
         user,
         accessToken,
+        refreshToken
     });
 };
 exports.sendToken = sendToken;
