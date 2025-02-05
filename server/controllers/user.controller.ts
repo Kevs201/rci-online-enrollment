@@ -238,7 +238,7 @@ export const updateAccessToken = CatchAsyncError(
 
       res.status(200).json({
         status: "success",
-        refreshToken,
+        accessToken,
       })
 
     } catch (error: any) {
