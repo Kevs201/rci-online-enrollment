@@ -3,10 +3,12 @@ import mongoose, { Document, Model, Schema } from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
+// Define the regex pattern for validating emails
 const emailRegexPattern: RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Define IUser interface
 export interface IUser extends Document {
-  _id: string;
+  _id: mongoose.Types.ObjectId; // explicitly define _id as ObjectId
   name: string;
   email: string;
   password: string;
@@ -22,6 +24,7 @@ export interface IUser extends Document {
   SignRefreshToken: () => string;
 }
 
+// Create schema for user
 const userSchema: Schema<IUser> = new mongoose.Schema(
   {
     name: {
@@ -33,15 +36,15 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
       required: [true, "Please enter your email"],
       validate: {
         validator: function (value: string) {
-          return emailRegexPattern.test(value);
+          return emailRegexPattern.test(value); // email validation using the regex pattern
         },
-        message: "please enter a valid email",
+        message: "Please enter a valid email",
       },
       unique: true,
     },
     password: {
       type: String,
-      minlength: [6, "Password must be at least 6 character"],
+      minlength: [6, "Password must be at least 6 characters"],
       select: false,
     },
     avatar: {
@@ -58,33 +61,33 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
     },
     courses: [
       {
-        course: String,
+        courseId: String, // using 'courseId' instead of 'course'
       },
     ],
   },
   { timestamps: true }
 );
 
-// Hash password before saving
+// Hash password before saving to database
 userSchema.pre<IUser>("save", async function (next) {
   if (!this.isModified("password")) {
-    next();
+    return next(); // skip if password is not modified
   }
-  this.password = await bcrypt.hash(this.password, 10);
+  this.password = await bcrypt.hash(this.password, 10); // hash password before saving
   next();
 });
 
-// sign access token
+// Sign access token
 userSchema.methods.SignAccessToken = function () {
-  return jwt.sign({ id: this._id }, process.env.ACCESS_TOKEN || '',{
+  return jwt.sign({ id: this._id }, process.env.ACCESS_TOKEN || '', {
     expiresIn: "5m",
   });
 };
 
-// sign refresh token
+// Sign refresh token
 userSchema.methods.SignRefreshToken = function () {
-  return jwt.sign({ id: this._id }, process.env.REFRESH_TOKEN || '',{
-    expiresIn: "7d",
+  return jwt.sign({ id: this._id }, process.env.REFRESH_TOKEN || '', {
+    expiresIn: "3d",
   });
 };
 
@@ -95,6 +98,7 @@ userSchema.methods.comparePassword = async function (
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
+// Create and export the User model
 const userModel: Model<IUser> = mongoose.model("User", userSchema);
 
 export default userModel;

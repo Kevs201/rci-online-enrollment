@@ -16,7 +16,9 @@ require('dotenv').config();
 const mongoose_1 = __importDefault(require("mongoose"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+// Define the regex pattern for validating emails
 const emailRegexPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Create schema for user
 const userSchema = new mongoose_1.default.Schema({
     name: {
         type: String,
@@ -27,15 +29,15 @@ const userSchema = new mongoose_1.default.Schema({
         required: [true, "Please enter your email"],
         validate: {
             validator: function (value) {
-                return emailRegexPattern.test(value);
+                return emailRegexPattern.test(value); // email validation using the regex pattern
             },
-            message: "please enter a valid email",
+            message: "Please enter a valid email",
         },
         unique: true,
     },
     password: {
         type: String,
-        minlength: [6, "Password must be at least 6 character"],
+        minlength: [6, "Password must be at least 6 characters"],
         select: false,
     },
     avatar: {
@@ -52,30 +54,30 @@ const userSchema = new mongoose_1.default.Schema({
     },
     courses: [
         {
-            course: String,
+            courseId: String, // using 'courseId' instead of 'course'
         },
     ],
 }, { timestamps: true });
-// Hash password before saving
+// Hash password before saving to database
 userSchema.pre("save", function (next) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!this.isModified("password")) {
-            next();
+            return next(); // skip if password is not modified
         }
-        this.password = yield bcryptjs_1.default.hash(this.password, 10);
+        this.password = yield bcryptjs_1.default.hash(this.password, 10); // hash password before saving
         next();
     });
 });
-// sign access token
+// Sign access token
 userSchema.methods.SignAccessToken = function () {
     return jsonwebtoken_1.default.sign({ id: this._id }, process.env.ACCESS_TOKEN || '', {
         expiresIn: "5m",
     });
 };
-// sign refresh token
+// Sign refresh token
 userSchema.methods.SignRefreshToken = function () {
     return jsonwebtoken_1.default.sign({ id: this._id }, process.env.REFRESH_TOKEN || '', {
-        expiresIn: "7d",
+        expiresIn: "3d",
     });
 };
 // Compare password
@@ -84,5 +86,6 @@ userSchema.methods.comparePassword = function (enteredPassword) {
         return yield bcryptjs_1.default.compare(enteredPassword, this.password);
     });
 };
+// Create and export the User model
 const userModel = mongoose_1.default.model("User", userSchema);
 exports.default = userModel;

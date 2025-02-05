@@ -236,7 +236,7 @@ exports.updateUserInfo = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, next
     var _c;
     try {
         const { name } = req.body;
-        const userId = (_c = req.user) === null || _c === void 0 ? void 0 : _c._id;
+        const userId = (_c = req.user) === null || _c === void 0 ? void 0 : _c.id;
         const user = yield user_model_1.default.findById(userId);
         if (name && user) {
             user.name = name;
@@ -261,7 +261,7 @@ exports.updatePassword = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, next
             return next(new ErrorHandler_1.default("Please enter both old and new password", 400));
         }
         // Ensure userId is a valid string
-        const userId = (_d = req.user) === null || _d === void 0 ? void 0 : _d._id; // Type assertion to ensure it's a string
+        const userId = (_d = req.user) === null || _d === void 0 ? void 0 : _d.id; // Type assertion to ensure it's a string
         if (!userId) {
             return next(new ErrorHandler_1.default("User not authenticated", 400));
         }
@@ -295,7 +295,7 @@ exports.updateProfilePicture = (0, catchAsyncErrors_1.CatchAsyncError)((req, res
     var _e, _f, _g;
     try {
         const { avatar } = req.body;
-        const userId = (_e = req.user) === null || _e === void 0 ? void 0 : _e._id;
+        const userId = (_e = req.user) === null || _e === void 0 ? void 0 : _e.id;
         const user = yield user_model_1.default.findById(userId);
         // if user have one avatar then call this if
         if (avatar && user) {

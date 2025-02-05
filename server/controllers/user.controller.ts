@@ -349,7 +349,7 @@ export const updateUserInfo = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { name } = req.body as IUpdateUserInfo;
-      const userId = req.user?._id as string;
+      const userId = req.user?.id as string;
       const user = await userModel.findById(userId);
 
       if (name && user) {
@@ -389,7 +389,7 @@ export const updatePassword = CatchAsyncError(
       }
 
       // Ensure userId is a valid string
-      const userId = req.user?._id as string; // Type assertion to ensure it's a string
+      const userId = req.user?.id as string; // Type assertion to ensure it's a string
       if (!userId) {
         return next(new ErrorHandler("User not authenticated", 400));
       }
@@ -436,7 +436,7 @@ export const updateProfilePicture = CatchAsyncError(
     try {
       const { avatar } = req.body;
 
-      const userId = req.user?._id as string;
+      const userId = req.user?.id as string;
 
       const user = await userModel.findById(userId);
       // if user have one avatar then call this if
