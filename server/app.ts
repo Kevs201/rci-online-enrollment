@@ -18,7 +18,7 @@ app.use(express.json({ limit: "50mb" }));
 // cookie parser
 app.use(cookieParser());
 
-// cors => cross-origin resource sharing
+// cors => corss origin resource sharing
 app.use(
   cors({
     origin: "https://rci-online-enrollment-client.vercel.app",
@@ -29,13 +29,13 @@ app.use(
 // api request limit
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
   standardHeaders: "draft-8", // draft-6: `RateLimit-*` headers; draft-7 & draft-8: combined `RateLimit` header
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+  // store: ... , // Redis, Memcached, etc. See below.
 });
-app.use(limiter);  // Apply rate limiter before routes to control the flow
 
-// testing api (this is working fine)
+// testing api
 app.get("/test", (req: Request, res: Response, next: NextFunction) => {
   res.status(200).json({
     success: true,
@@ -46,7 +46,7 @@ app.get("/test", (req: Request, res: Response, next: NextFunction) => {
 // routes
 app.use(
   "/api/v1",
-  userRouter,  // Ensure that this is correctly imported
+  userRouter,
   orderRouter,
   courseRouter,
   notificationRouter,
@@ -54,14 +54,14 @@ app.use(
   layoutRouter
 );
 
-// unknown route handler (for unrecognized routes)
+// unkown route
 app.all("*", (req: Request, res: Response, next: NextFunction) => {
   const err = new Error(`Route ${req.originalUrl} not found`) as any;
   err.statusCode = 404;
   next(err);
 });
 
-// error handling middleware
-app.use(ErrorMiddleware);
+// middleware calls
+app.use(limiter);
 
-export default app;
+app.use(ErrorMiddleware);

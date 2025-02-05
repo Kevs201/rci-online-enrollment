@@ -151,13 +151,17 @@ exports.updateAccessToken = (0, catchAsyncErrors_1.CatchAsyncError)((req, res, n
             return next(new ErrorHandler_1.default(message, 400));
         }
         const user = JSON.parse(session);
-        const accessToken = jsonwebtoken_1.default.sign({ id: user._id }, process.env.ACCESS_TOKEN, { expiresIn: '5m' });
-        const refreshToken = jsonwebtoken_1.default.sign({ id: user._id }, process.env.REFRESH_TOKEN, { expiresIn: '3d' });
-        res.cookie('access_token', accessToken, jwt_1.accessTokenOptions);
-        res.cookie('refresh_token', refreshToken, jwt_1.refreshTokenOptions);
+        const accessToken = jsonwebtoken_1.default.sign({ id: user._id }, process.env.ACCESS_TOKEN, {
+            expiresIn: "5m",
+        });
+        const refreshToken = jsonwebtoken_1.default.sign({ id: user._id }, process.env.REFRESH_TOKEN, {
+            expiresIn: "3d",
+        });
+        res.cookie("access_token", accessToken, jwt_1.accessTokenOptions);
+        res.cookie("refresh_token", refreshToken, jwt_1.refreshTokenOptions);
         res.status(200).json({
-            status: 'success',
-            accessToken,
+            status: "success",
+            refreshToken,
         });
     }
     catch (error) {

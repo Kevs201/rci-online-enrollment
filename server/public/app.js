@@ -21,7 +21,7 @@ const express_rate_limit_1 = require("express-rate-limit");
 exports.app.use(express_1.default.json({ limit: "50mb" }));
 // cookie parser
 exports.app.use((0, cookie_parser_1.default)());
-// cors => cross-origin resource sharing
+// cors => corss origin resource sharing
 exports.app.use((0, cors_1.default)({
     origin: "https://rci-online-enrollment-client.vercel.app",
     credentials: true, // Ensure cookies are sent with the request
@@ -31,10 +31,10 @@ const limiter = (0, express_rate_limit_1.rateLimit)({
     windowMs: 15 * 60 * 1000,
     limit: 100,
     standardHeaders: "draft-8",
-    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+    // store: ... , // Redis, Memcached, etc. See below.
 });
-exports.app.use(limiter); // Apply rate limiter before routes to control the flow
-// testing api (this is working fine)
+// testing api
 exports.app.get("/test", (req, res, next) => {
     res.status(200).json({
         success: true,
@@ -42,14 +42,13 @@ exports.app.get("/test", (req, res, next) => {
     });
 });
 // routes
-exports.app.use("/api/v1", user_route_1.default, // Ensure that this is correctly imported
-order_route_1.default, course_route_1.default, notification_route_1.default, analytics_route_1.default, layout_route_1.default);
-// unknown route handler (for unrecognized routes)
+exports.app.use("/api/v1", user_route_1.default, order_route_1.default, course_route_1.default, notification_route_1.default, analytics_route_1.default, layout_route_1.default);
+// unkown route
 exports.app.all("*", (req, res, next) => {
     const err = new Error(`Route ${req.originalUrl} not found`);
     err.statusCode = 404;
     next(err);
 });
-// error handling middleware
+// middleware calls
+exports.app.use(limiter);
 exports.app.use(error_1.ErrorMiddleware);
-exports.default = exports.app;
